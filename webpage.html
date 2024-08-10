@@ -1,0 +1,21 @@
+<html>
+<script src="https://unpkg.com/htmx.org@2.0.1"></script>
+<style type="text/css">
+    /* hide while request is in progress */
+    .htmx-request {
+        display: none;
+    }
+</style>
+<div>
+    <h1>Submit your text</h1>
+    <!-- send to /verify endpoint  -->
+    <form action="/verify" hx-post="/verify" method="post" hx-swap="outerHtml" hx-target="#result"
+        hx-indicator="#result">
+        <input type="text" name="assertion">
+        <input type="submit">
+    </form>
+    <!-- display result here, hidden while loading -->
+    <div id="result" />
+</div>
+
+</html>

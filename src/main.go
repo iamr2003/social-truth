@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"log"
+	// "log"
+	"net/http"
 	"os"
 	"os/exec"
 	"text/template"
@@ -12,38 +13,45 @@ type DafnyInput struct {
 	Assertion string
 }
 
+func mainPage(w http.ResponseWriter, r *http.Request) {
+	var htmlfile = "webpage.html"
+
+	//write html file to w
+	http.ServeFile(w, r, htmlfile)
+}
+
+func verifyAssertion(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("called verifyAssertion")
+
+	// get assertion from request
+	r.ParseForm()
+	assertion := r.Form.Get("assertion")
+	if assertion == "" {
+		http.Error(w, "Assertion not provided", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("past form parse")
+
+	// verify assertion
+	result, output := VerifyAssertion(assertion)
+	if result == "yes" {
+		fmt.Fprintf(w, "<html>Assertion is valid</html>")
+	} else {
+		fmt.Fprintf(w, "<html>Assertion is not valid: %s</html>", output)
+	}
+}
+
 func main() {
-	var dafnyTmpl = "lemma.dafny.templ"
-	tmpl, err := template.New(dafnyTmpl).ParseFiles(dafnyTmpl)
-	if err != nil {
-		panic(err)
-	}
-
-	file, err := os.Create("generated.dfy")
-	if err != nil {
-		log.Fatalf("Failed to create file: %s", err)
-	}
-	defer file.Close()
-
-	assertion := DafnyInput{Assertion: "5 < 3"}
-	err = tmpl.Execute(file, assertion)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Initial poc for social truth")
-	cmd := exec.Command("dafny", "verify", "generated.dfy")
-
-	output, err := cmd.Output()
-	if err != nil {
-		log.Printf("dafny fails with %s\n", err)
-	}
-	fmt.Printf("Output: \n%s \n", output)
+	http.HandleFunc("/", mainPage)
+	http.HandleFunc("/verify", verifyAssertion)
+	http.ListenAndServe(":8080", nil)
 }
 
 // verify assertion and return yes or no
 func VerifyAssertion(assertion string) (string, string) {
-	tmpl, err := template.New("verify").ParseFiles("lemma.dafny.templ")
+	var dafnyTmpl = "lemma.dafny.templ"
+	tmpl, err := template.New(dafnyTmpl).ParseFiles(dafnyTmpl)
 	if err != nil {
 		return "", "Failed to parse template: " + err.Error()
 	}
@@ -68,5 +76,3 @@ func VerifyAssertion(assertion string) (string, string) {
 
 	return "yes", string(output)
 }
-
-// serve webpage on a route that accesses above endpoint
