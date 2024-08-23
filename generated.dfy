@@ -1,4 +1,4 @@
 lemma test()
 {
-    assert( 5+7 > 4 );
+    assert( a );
 }

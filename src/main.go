@@ -36,9 +36,9 @@ func verifyAssertion(w http.ResponseWriter, r *http.Request) {
 	// verify assertion
 	result, output := VerifyAssertion(assertion)
 	if result == "yes" {
-		fmt.Fprintf(w, "<html>Assertion is valid</html>")
+		fmt.Fprintf(w, "<html><div>%s</div>Assertion is valid</html>", assertion)
 	} else {
-		fmt.Fprintf(w, "<html>Assertion is not valid: %s</html>", output)
+		fmt.Fprintf(w, "<html><div>%s</div>Assertion is not valid: %s</html>", assertion, output)
 	}
 }
 
